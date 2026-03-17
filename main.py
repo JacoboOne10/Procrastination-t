@@ -8,21 +8,33 @@ from vistas.perfil import obtener_vista_perfil
 
 def main(page: ft.Page):
     crear_tablas()
+    sesion_actual = {"nombre": "", "correo": ""}
 
-    # --- AJUSTES DE VENTANA (Tamaño Celular) ---
-    page.window.width = 380  # Un poco más ancho que el contenedor del celular
-    page.window.height = 720  # Un poco más alto que el contenedor del celular
-    page.window.resizable = False  # Evita que se deforme el diseño
-    page.padding = 0  # Quitamos márgenes para que el celular llene la ventana
+    # --- CONFIGURACIÓN DE PÁGINA ---
+    page.window.width = 380
+    page.window.height = 720
+    page.window.resizable = False
+    page.padding = 0
+    page.margin = 0
     page.title = "Procrastination't"
-
-    # Centrado
-    page.vertical_alignment = "center"
-    page.horizontal_alignment = "center"
 
     contenido_celular = ft.Container(expand=True)
 
-    # --- FUNCIONES DE NAVEGACIÓN ---
+    # --- 1. FUNCIONES DE AYUDA (Helper Functions) ---
+    def crear_item_dock(icon_name, selected_icon_name, index, seleccionado=False):
+        icono = selected_icon_name if seleccionado else icon_name
+        return ft.Container(
+            content=ft.Column([
+                ft.Icon(icono, color=ft.Colors.BLUE_900, size=28),
+            ], alignment=ft.MainAxisAlignment.CENTER, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
+            expand=True,
+            on_click=lambda _: cambiar_pestana_manual(index),
+        )
+
+    # --- 2. FUNCIONES DE NAVEGACIÓN ---
+    def cerrar_sesion(e):
+        ir_a_login()
+
     def ir_a_login(e=None):
         contenido_celular.content = obtener_vista_login(page, entrar_a_app, ir_a_registro)
         capa_dock.visible = False
@@ -33,49 +45,66 @@ def main(page: ft.Page):
         capa_dock.visible = False
         page.update()
 
-    def entrar_a_app(e):
-        contenido_celular.content = obtener_vista_inicio(page)
+    def entrar_a_app(datos):
+        sesion_actual["nombre"] = datos[0]
+        sesion_actual["correo"] = datos[1]
+        cambiar_pestana_manual(0)  # Inicia en la pestaña 0
         capa_dock.visible = True
         page.update()
 
-    def cerrar_sesion(e):
-        ir_a_login()
+    def cambiar_pestana_manual(indice):
+        iconos_base = [ft.Icons.HOME_OUTLINED, ft.Icons.BAR_CHART_OUTLINED, ft.Icons.PERSON_OUTLINE]
+        iconos_solid = [ft.Icons.HOME, ft.Icons.BAR_CHART, ft.Icons.PERSON]
 
-    def cambiar_pestana(ev):
-        indice = ev.control.selected_index
+        # Actualizamos iconos visualmente
+        for i, item in enumerate(capa_dock.content.controls):
+            item.content.controls[0].icon = iconos_solid[i] if i == indice else iconos_base[i]
+
         if indice == 0:
             contenido_celular.content = obtener_vista_inicio(page)
         elif indice == 1:
-            contenido_celular.content = obtener_vista_perfil(cerrar_sesion)
+            contenido_celular.content = ft.Container(
+                content=ft.Text("Estadísticas de Productividad", color=ft.Colors.BLUE_900, size=20, weight="bold"),
+                alignment=ft.alignment.center
+            )
+        elif indice == 2:
+            contenido_celular.content = obtener_vista_perfil(
+                cerrar_sesion,
+                nombre=sesion_actual["nombre"],
+                correo=sesion_actual["correo"]
+            )
         page.update()
 
-    # --- COMPONENTES ---
-    dock = ft.NavigationBar(
-        destinations=[
-            ft.NavigationBarDestination(icon=ft.Icons.HOME_ROUNDED),
-            ft.NavigationBarDestination(icon=ft.Icons.PERSON_ROUNDED),
-        ],
-        on_change=cambiar_pestana,
+    # --- 3. COMPONENTES DE LA INTERFAZ ---
+
+    # Creamos el Dock (Ahora fuera de las funciones para que sea visible)
+    capa_dock = ft.Container(
+        content=ft.Row([
+            crear_item_dock(ft.Icons.HOME_OUTLINED, ft.Icons.HOME, 0, seleccionado=True),
+            crear_item_dock(ft.Icons.BAR_CHART_OUTLINED, ft.Icons.BAR_CHART, 1),
+            crear_item_dock(ft.Icons.PERSON_OUTLINE, ft.Icons.PERSON, 2),
+        ], alignment=ft.MainAxisAlignment.SPACE_AROUND, spacing=0),
         bgcolor=ft.Colors.WHITE,
         height=70,
+        visible=False,
+        border=ft.border.only(top=ft.BorderSide(1, ft.Colors.BLUE_GREY_50)),
     )
 
-    capa_dock = ft.Container(content=dock, border_radius=20, clip_behavior=ft.ClipBehavior.HARD_EDGE, visible=False)
-
-    # --- EL MARCO DEL CELULAR (Ahora ajustado a la ventana) ---
+    # Marco del celular
     celular = ft.Container(
         expand=True,
         image=ft.DecorationImage(src="/5.jpg", fit="cover"),
-        padding=ft.Padding(top=40, left=15, right=15, bottom=15),
-        content=ft.Column(
-            controls=[
-                ft.Container(content=contenido_celular, expand=True),
-                capa_dock
-            ],
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER
-        )
+        content=ft.Column([
+            ft.Container(
+                content=contenido_celular,
+                expand=True,
+                padding=ft.padding.only(left=20, right=20, top=20, bottom=5)
+            ),
+            capa_dock
+        ], spacing=0)
     )
 
+    # --- 4. INICIO ---
     page.add(celular)
     ir_a_login()
 

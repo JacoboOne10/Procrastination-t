@@ -20,26 +20,33 @@ def crear_tablas():
     db.close()
 
 def registrar_usuario_db(nombre, correo, password):
+    db = conectar_db()
+    cursor = db.cursor()
     try:
-        db = conectar_db()
-        cursor = db.cursor()
         cursor.execute(
             "INSERT INTO usuarios (nombre, correo, password) VALUES (?, ?, ?)",
             (nombre, correo, password)
         )
         db.commit()
-        db.close()
         return True
     except sqlite3.IntegrityError:
-        return False # El correo ya existe
+        return False
+    except sqlite3.OperationalError as e:
+        print(f"Error de base de datos bloqueada: {e}")
+        return False
+    finally:
+        # ESTO ES LO MÁS IMPORTANTE:
+        # Cerramos la conexión siempre para liberar el archivo .db
+        db.close()
+
 
 def validar_usuario_db(correo, password):
-    db = conectar_db()
-    cursor = db.cursor()
-    cursor.execute(
-        "SELECT * FROM usuarios WHERE correo = ? AND password = ?",
-        (correo, password)
-    )
+    conn = sqlite3.connect("procrastination.db")
+    cursor = conn.cursor()
+    # Buscamos el nombre y el correo
+    cursor.execute("SELECT nombre, correo FROM usuarios WHERE correo=? AND password=?", (correo, password))
     usuario = cursor.fetchone()
-    db.close()
-    return usuario is not None
+    conn.close()
+
+    # Si existe, devuelve una tupla (Nombre, Correo), si no, devuelve None
+    return usuario
