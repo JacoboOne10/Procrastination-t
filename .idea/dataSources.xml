@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="procrastination.db" uuid="d71e27a5-cfd1-42fb-ba8b-f8ead2ef01d2">
+    <data-source source="LOCAL" name="procrastination.db" uuid="8271b2cd-ef9a-4fc2-91b2-779cfb71dea0">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:C:\Users\erick\Proyectos Flet\Procrastination't\procrastination.db</jdbc-url>
+      <jdbc-url>jdbc:sqlite:C:\Users\erick\PycharmProjects\Procrastination-t\procrastination.db</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>

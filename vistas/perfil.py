@@ -1,8 +1,7 @@
 import flet as ft
 
-
-def obtener_vista_perfil(on_logout, nombre="Usuario", correo="correo@ejemplo.com"):
-    # --- 1. DEFINIR COLORES (Asegúrate de que estén AQUÍ adentro) ---
+def obtener_vista_perfil(on_logout, ir_a_modificar, nombre="Usuario", correo="correo@ejemplo.com"):
+    # --- 1. DEFINIR COLORES ---
     color_titulo = ft.Colors.BLUE_900
     color_texto = ft.Colors.BLACK
     color_iconos = ft.Colors.BLUE_700
@@ -39,22 +38,20 @@ def obtener_vista_perfil(on_logout, nombre="Usuario", correo="correo@ejemplo.com
                     shadow=ft.BoxShadow(blur_radius=10, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK))
                 ),
 
-                # --- EL RESORTE QUE EMPUJA TODO ABAJO ---
                 ft.Container(expand=True),
 
-                # --- BOTONES AL FINAL ---
+                # --- BOTÓN MODIFICAR DATOS (AHORA CON CLICK) ---
                 ft.Container(
                     content=ft.ListTile(
                         leading=ft.Icon(ft.Icons.EDIT_ROUNDED, color=color_iconos),
                         title=ft.Text("Modificar Datos", color=color_iconos, weight="bold"),
+                        on_click=ir_a_modificar # <--- Acción conectada
                     ),
                     bgcolor=ft.Colors.WHITE,
                     border_radius=15,
                     height=55,
                     shadow=ft.BoxShadow(blur_radius=5, color=ft.Colors.with_opacity(0.05, ft.Colors.BLACK))
                 ),
-
-                #ft.Container(height=10),
 
                 ft.Container(
                     content=ft.ListTile(

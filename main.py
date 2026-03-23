@@ -4,7 +4,7 @@ from vistas.login import obtener_vista_login
 from vistas.registro import obtener_vista_registro
 from vistas.inicio import obtener_vista_inicio
 from vistas.perfil import obtener_vista_perfil
-
+from vistas.modificar_datos import obtener_vista_modificar # Importamos la nueva vista
 
 def main(page: ft.Page):
     crear_tablas()
@@ -20,7 +20,7 @@ def main(page: ft.Page):
 
     contenido_celular = ft.Container(expand=True)
 
-    # --- 1. FUNCIONES DE AYUDA (Helper Functions) ---
+    # --- 1. FUNCIONES DE AYUDA ---
     def crear_item_dock(icon_name, selected_icon_name, index, seleccionado=False):
         icono = selected_icon_name if seleccionado else icon_name
         return ft.Container(
@@ -48,15 +48,37 @@ def main(page: ft.Page):
     def entrar_a_app(datos):
         sesion_actual["nombre"] = datos[0]
         sesion_actual["correo"] = datos[1]
-        cambiar_pestana_manual(0)  # Inicia en la pestaña 0
+        cambiar_pestana_manual(0)
         capa_dock.visible = True
+        page.update()
+
+    def ir_a_modificar_datos(e=None):
+        capa_dock.visible = False
+
+        def volver_y_actualizar(nuevo_nombre=None, nuevo_correo=None):
+            # 1. Si el usuario cambió su correo, actualizamos el "ID" de la sesión
+            if nuevo_correo:
+                sesion_actual["correo"] = nuevo_correo
+            if nuevo_nombre:
+                sesion_actual["nombre"] = nuevo_nombre
+
+            # 2. Reactivamos el dock y refrescamos la pestaña de perfil
+            capa_dock.visible = True
+            cambiar_pestana_manual(2)
+            page.update()
+
+        contenido_celular.content = obtener_vista_modificar(
+            page,
+            sesion_actual["nombre"],
+            sesion_actual["correo"],
+            al_finalizar=volver_y_actualizar  # Pasamos la nueva función de retorno
+        )
         page.update()
 
     def cambiar_pestana_manual(indice):
         iconos_base = [ft.Icons.HOME_OUTLINED, ft.Icons.BAR_CHART_OUTLINED, ft.Icons.PERSON_OUTLINE]
         iconos_solid = [ft.Icons.HOME, ft.Icons.BAR_CHART, ft.Icons.PERSON]
 
-        # Actualizamos iconos visualmente
         for i, item in enumerate(capa_dock.content.controls):
             item.content.controls[0].icon = iconos_solid[i] if i == indice else iconos_base[i]
 
@@ -68,16 +90,16 @@ def main(page: ft.Page):
                 alignment=ft.alignment.center
             )
         elif indice == 2:
+            # PASAMOS LA NUEVA FUNCIÓN AL PERFIL
             contenido_celular.content = obtener_vista_perfil(
                 cerrar_sesion,
+                ir_a_modificar_datos, # <--- Conexión aquí
                 nombre=sesion_actual["nombre"],
                 correo=sesion_actual["correo"]
             )
         page.update()
 
-    # --- 3. COMPONENTES DE LA INTERFAZ ---
-
-    # Creamos el Dock (Ahora fuera de las funciones para que sea visible)
+    # --- 3. COMPONENTES ---
     capa_dock = ft.Container(
         content=ft.Row([
             crear_item_dock(ft.Icons.HOME_OUTLINED, ft.Icons.HOME, 0, seleccionado=True),
@@ -87,10 +109,9 @@ def main(page: ft.Page):
         bgcolor=ft.Colors.WHITE,
         height=70,
         visible=False,
-        border=ft.border.only(top=ft.BorderSide(1, ft.Colors.BLUE_GREY_50)),
+        border=ft.Border(top=ft.BorderSide(1, ft.Colors.BLUE_GREY_50)),
     )
 
-    # Marco del celular
     celular = ft.Container(
         expand=True,
         image=ft.DecorationImage(src="/5.jpg", fit="cover"),
@@ -98,16 +119,14 @@ def main(page: ft.Page):
             ft.Container(
                 content=contenido_celular,
                 expand=True,
-                padding=ft.padding.only(left=20, right=20, top=20, bottom=5)
+                padding=ft.Padding(left=20, right=20, top=20, bottom=5)
             ),
             capa_dock
         ], spacing=0)
     )
 
-    # --- 4. INICIO ---
     page.add(celular)
     ir_a_login()
-
 
 if __name__ == "__main__":
     ft.run(main, assets_dir="images")
