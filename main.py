@@ -83,7 +83,7 @@ def main(page: ft.Page):
             item.content.controls[0].icon = iconos_solid[i] if i == indice else iconos_base[i]
 
         if indice == 0:
-            contenido_celular.content = obtener_vista_inicio(page)
+            contenido_celular.content = obtener_vista_inicio(page, sesion_actual["correo"])  # <-- agrega el correo
         elif indice == 1:
             contenido_celular.content = ft.Container(
                 content=ft.Text("Estadísticas de Productividad", color=ft.Colors.BLUE_900, size=20, weight="bold"),

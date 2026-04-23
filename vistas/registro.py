@@ -37,7 +37,6 @@ def obtener_vista_registro(page, volver_a_login):
     campo_pass = crear_campo_sombra("Contraseña", ft.Icons.LOCK_OUTLINE, is_password=True)
 
     def realizar_registro(e):
-        # Accedemos a los valores a través del content de los containers
         nombre = campo_nombre.content.value
         correo = campo_correo.content.value
         contrasena = campo_pass.content.value
@@ -53,7 +52,7 @@ def obtener_vista_registro(page, volver_a_login):
             page.update()
             return
 
-        exito = registrar_usuario_db(nombre, correo, contrasena)
+        exito, mensaje = registrar_usuario_db(nombre, correo, contrasena)  # <-- desempacamos la tupla
 
         if exito:
             page.overlay.append(
@@ -68,7 +67,7 @@ def obtener_vista_registro(page, volver_a_login):
         else:
             page.overlay.append(
                 ft.SnackBar(
-                    content=ft.Text("❌ El correo ya está registrado"),
+                    content=ft.Text(f"❌ {mensaje}"),  # <-- mostramos el mensaje exacto
                     bgcolor=ft.Colors.RED_700
                 )
             )

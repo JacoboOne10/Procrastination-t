@@ -21,11 +21,11 @@ def obtener_vista_login(page, on_login, ir_a_registro):
                 border=ft.InputBorder.NONE,  # Quitamos el borde gris por defecto
                 bgcolor=ft.Colors.TRANSPARENT,
                 color=color_texto_oscuro,
-                content_padding=ft.padding.only(top=10, bottom=10, left=10, right=10),
+                content_padding=ft.Padding(top=10, bottom=10, left=10, right=10),
             ),
             bgcolor=color_fondo_tf,
             border_radius=15,
-            padding=ft.padding.only(left=10, right=10),
+            padding=ft.Padding(left=10, right=10),
             shadow=ft.BoxShadow(
                 blur_radius=10,
                 color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK),
