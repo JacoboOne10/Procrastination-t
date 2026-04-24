@@ -1,14 +1,14 @@
 import flet as ft
 from vistas.db_manager import registrar_usuario_db
+from vistas.notis import mostrar_snackbar
+
 
 def obtener_vista_registro(page, volver_a_login):
-    # --- CONFIGURACIÓN DE ESTILO ---
     color_primario = ft.Colors.BLUE_800
     color_texto_oscuro = ft.Colors.BLACK
     color_boton_texto = ft.Colors.WHITE
     color_fondo_tf = ft.Colors.WHITE
 
-    # 1. Función para crear campos con sombra (Estilo Tarjeta)
     def crear_campo_sombra(label, icon, is_password=False):
         return ft.Container(
             content=ft.TextField(
@@ -16,14 +16,14 @@ def obtener_vista_registro(page, volver_a_login):
                 prefix_icon=icon,
                 password=is_password,
                 can_reveal_password=is_password,
-                border=ft.InputBorder.NONE, # Quitamos el borde gris
+                border=ft.InputBorder.NONE,
                 bgcolor=ft.Colors.TRANSPARENT,
                 color=color_texto_oscuro,
-                content_padding=ft.padding.only(top=10, bottom=10, left=10, right=10),
+                content_padding=ft.Padding.only(top=10, bottom=10, left=10, right=10),
             ),
             bgcolor=color_fondo_tf,
             border_radius=15,
-            padding=ft.padding.only(left=10, right=10),
+            padding=ft.Padding.only(left=10, right=10),
             shadow=ft.BoxShadow(
                 blur_radius=10,
                 color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK),
@@ -31,7 +31,6 @@ def obtener_vista_registro(page, volver_a_login):
             )
         )
 
-    # Instanciamos los campos
     campo_nombre = crear_campo_sombra("Nombre completo", ft.Icons.FACE)
     campo_correo = crear_campo_sombra("Correo electrónico", ft.Icons.EMAIL)
     campo_pass = crear_campo_sombra("Contraseña", ft.Icons.LOCK_OUTLINE, is_password=True)
@@ -42,45 +41,23 @@ def obtener_vista_registro(page, volver_a_login):
         contrasena = campo_pass.content.value
 
         if not nombre or not correo or not contrasena:
-            page.overlay.append(
-                ft.SnackBar(
-                    content=ft.Text("⚠️ Todos los campos son obligatorios"),
-                    bgcolor=ft.Colors.ORANGE_700
-                )
-            )
-            page.overlay[-1].open = True
-            page.update()
+            mostrar_snackbar(page, "⚠️ Todos los campos son obligatorios", ft.Colors.ORANGE_700)
             return
 
-        exito, mensaje = registrar_usuario_db(nombre, correo, contrasena)  # <-- desempacamos la tupla
+        exito, mensaje = registrar_usuario_db(nombre, correo, contrasena)
 
         if exito:
-            page.overlay.append(
-                ft.SnackBar(
-                    content=ft.Text("✅ ¡Usuario registrado! Ya puedes entrar"),
-                    bgcolor=ft.Colors.GREEN_700
-                )
-            )
-            page.overlay[-1].open = True
-            page.update()
+            mostrar_snackbar(page, "✅ ¡Usuario registrado! Ya puedes entrar", ft.Colors.GREEN_700)
             volver_a_login(None)
         else:
-            page.overlay.append(
-                ft.SnackBar(
-                    content=ft.Text(f"❌ {mensaje}"),  # <-- mostramos el mensaje exacto
-                    bgcolor=ft.Colors.RED_700
-                )
-            )
-            page.overlay[-1].open = True
-            page.update()
+            mostrar_snackbar(page, f"❌ {mensaje}", ft.Colors.RED_700)
 
-    # --- BOTÓN REGISTRARSE CON SOMBRA ---
     btn_registro = ft.Container(
         content=ft.Text("Registrarse", size=14, weight="bold", color=color_boton_texto),
         bgcolor=color_primario,
         border_radius=15,
         height=55,
-        alignment=ft.Alignment(0, 0), # Centrado universal para evitar errores de atributo
+        alignment=ft.Alignment(0, 0),
         on_click=realizar_registro,
         shadow=ft.BoxShadow(
             blur_radius=10,
@@ -101,14 +78,13 @@ def obtener_vista_registro(page, volver_a_login):
                 ft.Text("Crear cuenta", size=26, weight="bold", color=color_primario),
                 ft.Container(height=10),
 
-                campo_nombre, # Campo con sombra
-                campo_correo, # Campo con sombra
-                campo_pass,   # Campo con sombra
+                campo_nombre,
+                campo_correo,
+                campo_pass,
                 ft.Container(height=10),
 
-                btn_registro, # Botón con sombra
+                btn_registro,
 
-                # SECCIÓN VOLVER AL LOGIN (Texto y botón plano)
                 ft.Row([
                     ft.Text("¿Ya tienes una cuenta?", size=12, color=color_texto_oscuro),
                     ft.TextButton(
@@ -126,6 +102,7 @@ def obtener_vista_registro(page, volver_a_login):
         padding=20,
         expand=True
     )
+
 
 # --- Bloque de prueba ---
 if __name__ == "__main__":

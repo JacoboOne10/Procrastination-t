@@ -1,10 +1,21 @@
 import flet as ft
+import random
 from vistas.db_manager import agregar_actividad_db
+from vistas.notis import mostrar_snackbar
 
 
 def obtener_vista_inicio(page, correo_usuario):
     color_azul = ft.Colors.BLUE_900
     color_naranja = ft.Colors.ORANGE_600
+
+    frases = [
+        "\"El secreto de salir adelante es comenzar.\"",
+        "\"No cuentes los días, haz que los días cuenten.\"",
+        "\"El tiempo que disfrutas perder no es tiempo perdido.\"",
+        "\"Pequeños pasos cada día llevan a grandes resultados.\"",
+        "\"La disciplina es elegir entre lo que quieres ahora y lo que más quieres.\"",
+        "\"Enfócate en el progreso, no en la perfección.\""
+    ]
 
     # --- ESTADO DEL FORMULARIO ---
     estado = {
@@ -16,8 +27,8 @@ def obtener_vista_inicio(page, correo_usuario):
 
     # --- TEXTOS PARA MOSTRAR FECHA/HORA ---
     txt_fecha = ft.Text("Seleccionar fecha", color=ft.Colors.GREY_600, size=13)
-    txt_hora_inicio = ft.Text("Seleccionar hora", color=ft.Colors.GREY_600, size=13)
-    txt_hora_fin = ft.Text("Seleccionar hora", color=ft.Colors.GREY_600, size=13)
+    txt_hora_inicio = ft.Text("Seleccionar hora", color=ft.Colors.GREY_600, size=13, text_align=ft.TextAlign.CENTER)
+    txt_hora_fin = ft.Text("Seleccionar hora", color=ft.Colors.GREY_600, size=13, text_align=ft.TextAlign.CENTER)
 
     # --- CAMPOS ---
     campo_nombre = ft.Container(
@@ -92,16 +103,17 @@ def obtener_vista_inicio(page, correo_usuario):
 
     def crear_boton_picker(icono, texto_ref, on_click):
         return ft.Container(
-            content=ft.Row([
+            content=ft.Column([
                 ft.Icon(icono, color=color_azul, size=20),
                 texto_ref
-            ], spacing=10),
+            ], spacing=5, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
             bgcolor=ft.Colors.WHITE,
             border_radius=15,
             padding=ft.Padding.only(left=15, right=15, top=15, bottom=15),
             shadow=ft.BoxShadow(blur_radius=10, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK), offset=ft.Offset(0, 4)),
             on_click=on_click,
-            expand=True
+            expand=True,
+            alignment=ft.Alignment(0, 0)
         )
 
     # --- VISTA PRINCIPAL ---
@@ -114,7 +126,7 @@ def obtener_vista_inicio(page, correo_usuario):
 
             ft.Container(
                 content=ft.Row([
-                    ft.Icon(ft.Icons.SCHOOL_ROUNDED, color=ft.Colors.BLUE_600, size=35),
+                    ft.Icon(ft.Icons.SCHOOL_ROUNDED, color=ft.Colors.BLUE_900, size=35),
                     ft.Column([
                         ft.Text("Académica", weight="bold", size=16, color=color_azul),
                         ft.Text("Tareas, estudio, proyectos...", size=12, color=ft.Colors.GREY_600),
@@ -134,7 +146,7 @@ def obtener_vista_inicio(page, correo_usuario):
                 content=ft.Row([
                     ft.Icon(ft.Icons.CELEBRATION_ROUNDED, color=color_naranja, size=35),
                     ft.Column([
-                        ft.Text("Ocio y Recreación", weight="bold", size=16, color=color_azul),
+                        ft.Text("Ocio y Recreación", weight="bold", size=16, color=color_naranja),
                         ft.Text("Gaming, redes sociales, descanso...", size=12, color=ft.Colors.GREY_600),
                     ], spacing=2)
                 ], alignment=ft.MainAxisAlignment.START),
@@ -150,7 +162,7 @@ def obtener_vista_inicio(page, correo_usuario):
 
             ft.Container(
                 content=ft.Text(
-                    "\"El secreto de salir adelante es comenzar.\"",
+                    random.choice(frases),
                     italic=True,
                     size=12,
                     color=ft.Colors.BLUE_GREY_400,
@@ -164,7 +176,7 @@ def obtener_vista_inicio(page, correo_usuario):
 
     # --- VISTA FORMULARIO ---
     titulo_formulario = ft.Text("", size=22, weight="bold", color=color_azul)
-    icono_formulario = ft.Icon(ft.Icons.SCHOOL_ROUNDED, color=ft.Colors.BLUE_600, size=28)
+    icono_formulario = ft.Icon(ft.Icons.SCHOOL_ROUNDED, color=ft.Colors.BLUE_900, size=28)
 
     vista_formulario = ft.Column(
         controls=[
@@ -236,11 +248,13 @@ def obtener_vista_inicio(page, correo_usuario):
 
         titulo_formulario.value = categoria
         if categoria == "Académica":
-            icono_formulario.name = ft.Icons.SCHOOL_ROUNDED
-            icono_formulario.color = ft.Colors.BLUE_600
+            icono_formulario.icon = ft.Icons.SCHOOL_ROUNDED
+            icono_formulario.color = ft.Colors.BLUE_900
+            titulo_formulario.color = color_azul
         else:
-            icono_formulario.name = ft.Icons.CELEBRATION_ROUNDED
+            icono_formulario.icon = ft.Icons.CELEBRATION_ROUNDED
             icono_formulario.color = color_naranja
+            titulo_formulario.color = color_naranja
 
         contenedor.content = vista_formulario
         page.update()
@@ -254,30 +268,13 @@ def obtener_vista_inicio(page, correo_usuario):
         descripcion = campo_descripcion.content.value.strip()
 
         if not nombre:
-            page.overlay.append(ft.SnackBar(
-                content=ft.Text("⚠️ El nombre de la actividad es obligatorio"),
-                bgcolor=ft.Colors.ORANGE_700
-            ))
-            page.overlay[-1].open = True
-            page.update()
+            mostrar_snackbar(page,"⚠️ El nombre de la actividad es obligatorio", ft.Colors.ORANGE_700)
             return
-
         if not estado["fecha"]:
-            page.overlay.append(ft.SnackBar(
-                content=ft.Text("⚠️ Debes seleccionar una fecha"),
-                bgcolor=ft.Colors.ORANGE_700
-            ))
-            page.overlay[-1].open = True
-            page.update()
+            mostrar_snackbar(page,"⚠️ Debes seleccionar una fecha", ft.Colors.ORANGE_700)
             return
-
         if not estado["hora_inicio"] or not estado["hora_fin"]:
-            page.overlay.append(ft.SnackBar(
-                content=ft.Text("⚠️ Debes seleccionar hora de inicio y fin"),
-                bgcolor=ft.Colors.ORANGE_700
-            ))
-            page.overlay[-1].open = True
-            page.update()
+            mostrar_snackbar(page,"⚠️ Debes seleccionar hora de inicio y fin", ft.Colors.ORANGE_700)
             return
 
         exito = agregar_actividad_db(
@@ -291,22 +288,13 @@ def obtener_vista_inicio(page, correo_usuario):
         )
 
         if exito:
-            page.overlay.append(ft.SnackBar(
-                content=ft.Text("✅ Actividad registrada correctamente"),
-                bgcolor=ft.Colors.GREEN_700
-            ))
-            page.overlay[-1].open = True
-            page.update()
+            mostrar_snackbar(page,"✅ Actividad registrada correctamente", ft.Colors.GREEN_700)
             volver_principal()
         else:
-            page.overlay.append(ft.SnackBar(
-                content=ft.Text("❌ Error al guardar la actividad"),
-                bgcolor=ft.Colors.RED_700
-            ))
-            page.overlay[-1].open = True
-            page.update()
+            mostrar_snackbar(page,"❌ Error al guardar la actividad", ft.Colors.RED_700)
 
     return contenedor
+
 
 # --- Bloque de prueba ---
 if __name__ == "__main__":

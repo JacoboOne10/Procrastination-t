@@ -1,5 +1,6 @@
 import flet as ft
 from vistas.db_manager import actualizar_usuario_db
+from vistas.notis import mostrar_snackbar
 
 
 def obtener_vista_modificar(page, nombre_actual, correo_actual, al_finalizar):
@@ -42,12 +43,7 @@ def obtener_vista_modificar(page, nombre_actual, correo_actual, al_finalizar):
         pass_cambio = nueva_pass if nueva_pass else None
 
         if not nombre_cambio and not correo_cambio and not pass_cambio:
-            page.overlay.append(ft.SnackBar(
-                content=ft.Text("⚠️ No hay cambios que guardar"),
-                bgcolor=ft.Colors.ORANGE_700
-            ))
-            page.overlay[-1].open = True
-            page.update()
+            mostrar_snackbar(page, "⚠️ No hay cambios que guardar", ft.Colors.ORANGE_700)
             return
 
         exito, mensaje = actualizar_usuario_db(
@@ -58,23 +54,13 @@ def obtener_vista_modificar(page, nombre_actual, correo_actual, al_finalizar):
         )
 
         if exito:
-            page.overlay.append(ft.SnackBar(
-                content=ft.Text("✅ Datos actualizados correctamente"),
-                bgcolor=ft.Colors.GREEN_700
-            ))
-            page.overlay[-1].open = True
-            page.update()
+            mostrar_snackbar(page, "✅ Datos actualizados correctamente", ft.Colors.GREEN_700)
             al_finalizar(
                 nuevo_nombre if nombre_cambio else nombre_actual,
                 nuevo_correo if correo_cambio else correo_actual
             )
         else:
-            page.overlay.append(ft.SnackBar(
-                content=ft.Text(f"❌ {mensaje}"),
-                bgcolor=ft.Colors.RED_700
-            ))
-            page.overlay[-1].open = True
-            page.update()
+            mostrar_snackbar(page, f"❌ {mensaje}", ft.Colors.RED_700)
 
     btn_finalizar = ft.Container(
         content=ft.Text("Guardar cambios", size=14, weight="bold", color=ft.Colors.WHITE),

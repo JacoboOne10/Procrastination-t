@@ -1,16 +1,14 @@
 import flet as ft
 from vistas.db_manager import validar_usuario_db
+from vistas.notis import mostrar_snackbar
 
 
 def obtener_vista_login(page, on_login, ir_a_registro):
-    # --- CONFIGURACIÓN DE ESTILO ---
     color_primario = ft.Colors.BLUE_800
     color_texto_oscuro = ft.Colors.BLACK
     color_boton_texto = ft.Colors.WHITE
-    color_borde_tf = ft.Colors.TRANSPARENT  # Transparente para que luzca mejor con la sombra
     color_fondo_tf = ft.Colors.WHITE
 
-    # 1. Función para crear campos con sombra (Estilo Tarjeta)
     def crear_campo_sombra(label, icon, is_password=False):
         return ft.Container(
             content=ft.TextField(
@@ -18,7 +16,7 @@ def obtener_vista_login(page, on_login, ir_a_registro):
                 prefix_icon=icon,
                 password=is_password,
                 can_reveal_password=is_password,
-                border=ft.InputBorder.NONE,  # Quitamos el borde gris por defecto
+                border=ft.InputBorder.NONE,
                 bgcolor=ft.Colors.TRANSPARENT,
                 color=color_texto_oscuro,
                 content_padding=ft.Padding(top=10, bottom=10, left=10, right=10),
@@ -33,12 +31,10 @@ def obtener_vista_login(page, on_login, ir_a_registro):
             )
         )
 
-    # Instanciamos los campos
     campo_correo = crear_campo_sombra("Correo electrónico", ft.Icons.PERSON)
     campo_pass = crear_campo_sombra("Contraseña", ft.Icons.LOCK_OUTLINE, is_password=True)
 
     def intentar_login(e):
-        # Accedemos al valor a través del content del container (el TextField)
         correo = campo_correo.content.value
         contrasena = campo_pass.content.value
 
@@ -47,16 +43,8 @@ def obtener_vista_login(page, on_login, ir_a_registro):
         if datos_usuario:
             on_login(datos_usuario)
         else:
-            page.overlay.append(
-                ft.SnackBar(
-                    content=ft.Text("❌ Credenciales incorrectas", color=ft.Colors.WHITE),
-                    bgcolor=ft.Colors.RED_700,
-                )
-            )
-            page.overlay[-1].open = True
-            page.update()
+            mostrar_snackbar(page, "❌ Credenciales incorrectas", ft.Colors.RED_700)
 
-    # --- BOTÓN DE INICIO CON SOMBRA ---
     btn_login = ft.Container(
         content=ft.Text("Iniciar sesión", size=14, weight="bold", color=color_boton_texto),
         bgcolor=color_primario,
@@ -83,13 +71,12 @@ def obtener_vista_login(page, on_login, ir_a_registro):
                 ft.Text("Procrastination't", size=26, weight="bold", color=color_primario),
                 ft.Container(height=15),
 
-                campo_correo,  # Campo con sombra
-                campo_pass,  # Campo con sombra
+                campo_correo,
+                campo_pass,
                 ft.Container(height=10),
 
-                btn_login,  # Botón con sombra
+                btn_login,
 
-                # SECCIÓN REGÍSTRATE (Diseño original)
                 ft.Row([
                     ft.Text("¿No tienes una cuenta?", size=12, color=color_texto_oscuro),
                     ft.TextButton(
@@ -116,10 +103,9 @@ if __name__ == "__main__":
         page.window.height = 720
         page.window.resizable = False
         page.padding = 0
-        page.title = "Previsualización Login con Sombras"
+        page.title = "Previsualización Login"
 
         def mock_login(datos): print(f"Login exitoso: {datos}")
-
         def mock_registro(e): print("Navegando a Registro...")
 
         celular_test = ft.Container(
@@ -130,6 +116,5 @@ if __name__ == "__main__":
 
         page.add(celular_test)
         page.update()
-
 
     ft.run(test_main, assets_dir="../images")
