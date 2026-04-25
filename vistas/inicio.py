@@ -17,7 +17,6 @@ def obtener_vista_inicio(page, correo_usuario):
         "\"Enfócate en el progreso, no en la perfección.\""
     ]
 
-    # --- ESTADO DEL FORMULARIO ---
     estado = {
         "categoria": "",
         "fecha": "",
@@ -25,12 +24,10 @@ def obtener_vista_inicio(page, correo_usuario):
         "hora_fin": "",
     }
 
-    # --- TEXTOS PARA MOSTRAR FECHA/HORA ---
     txt_fecha = ft.Text("Seleccionar fecha", color=ft.Colors.GREY_600, size=13)
     txt_hora_inicio = ft.Text("Seleccionar hora", color=ft.Colors.GREY_600, size=13, text_align=ft.TextAlign.CENTER)
     txt_hora_fin = ft.Text("Seleccionar hora", color=ft.Colors.GREY_600, size=13, text_align=ft.TextAlign.CENTER)
 
-    # --- CAMPOS ---
     campo_nombre = ft.Container(
         content=ft.TextField(
             label="Nombre de la actividad",
@@ -63,7 +60,6 @@ def obtener_vista_inicio(page, correo_usuario):
         shadow=ft.BoxShadow(blur_radius=10, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK), offset=ft.Offset(0, 4))
     )
 
-    # --- DATE / TIME PICKERS ---
     def al_cambiar_fecha(e):
         if e.control.value:
             estado["fecha"] = e.control.value.strftime("%Y-%m-%d")
@@ -116,7 +112,6 @@ def obtener_vista_inicio(page, correo_usuario):
             alignment=ft.Alignment(0, 0)
         )
 
-    # --- VISTA PRINCIPAL ---
     vista_principal = ft.Column(
         controls=[
             ft.Container(height=10),
@@ -174,67 +169,73 @@ def obtener_vista_inicio(page, correo_usuario):
         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
     )
 
-    # --- VISTA FORMULARIO ---
     titulo_formulario = ft.Text("", size=22, weight="bold", color=color_azul)
     icono_formulario = ft.Icon(ft.Icons.SCHOOL_ROUNDED, color=ft.Colors.BLUE_900, size=28)
 
+    btn_guardar = ft.Container(
+        content=ft.Text("Guardar actividad", size=14, weight="bold", color=ft.Colors.WHITE),
+        bgcolor=color_azul,
+        border_radius=15,
+        height=55,
+        alignment=ft.Alignment(0, 0),
+        on_click=lambda e: guardar_actividad(e),
+        shadow=ft.BoxShadow(blur_radius=10, color=ft.Colors.with_opacity(0.3, ft.Colors.BLACK), offset=ft.Offset(0, 4))
+    )
+
     vista_formulario = ft.Column(
         controls=[
-            ft.Row([
-                ft.IconButton(
-                    icon=ft.Icons.ARROW_BACK_IOS_NEW_ROUNDED,
-                    icon_color=color_azul,
-                    on_click=lambda _: volver_principal()
-                )
-            ], alignment=ft.MainAxisAlignment.START),
+            # Parte scrollable
+            ft.Column(
+                controls=[
+                    ft.Row([
+                        ft.IconButton(
+                            icon=ft.Icons.ARROW_BACK_IOS_NEW_ROUNDED,
+                            icon_color=color_azul,
+                            on_click=lambda _: volver_principal()
+                        )
+                    ], alignment=ft.MainAxisAlignment.START),
 
-            ft.Row([icono_formulario, titulo_formulario], spacing=10),
+                    ft.Row([icono_formulario, titulo_formulario], spacing=10),
 
-            ft.Container(height=5),
+                    ft.Container(height=5),
 
-            campo_nombre,
-            campo_descripcion,
+                    campo_nombre,
+                    campo_descripcion,
 
-            crear_boton_picker(ft.Icons.CALENDAR_MONTH_ROUNDED, txt_fecha, abrir_fecha),
+                    crear_boton_picker(ft.Icons.CALENDAR_MONTH_ROUNDED, txt_fecha, abrir_fecha),
 
-            ft.Row([
-                ft.Container(
-                    content=crear_boton_picker(ft.Icons.ACCESS_TIME_ROUNDED, txt_hora_inicio, abrir_hora_inicio),
-                    expand=True
-                ),
-                ft.Container(width=10),
-                ft.Container(
-                    content=crear_boton_picker(ft.Icons.TIMER_OFF_ROUNDED, txt_hora_fin, abrir_hora_fin),
-                    expand=True
-                ),
-            ]),
-
-            ft.Container(expand=True),
-
-            ft.Container(
-                content=ft.Text("Guardar actividad", size=14, weight="bold", color=ft.Colors.WHITE),
-                bgcolor=color_azul,
-                border_radius=15,
-                height=55,
-                alignment=ft.Alignment(0, 0),
-                on_click=lambda e: guardar_actividad(e),
-                shadow=ft.BoxShadow(blur_radius=10, color=ft.Colors.with_opacity(0.3, ft.Colors.BLACK), offset=ft.Offset(0, 4))
+                    ft.Row([
+                        ft.Container(
+                            content=crear_boton_picker(ft.Icons.ACCESS_TIME_ROUNDED, txt_hora_inicio, abrir_hora_inicio),
+                            expand=True
+                        ),
+                        ft.Container(width=10),
+                        ft.Container(
+                            content=crear_boton_picker(ft.Icons.TIMER_OFF_ROUNDED, txt_hora_fin, abrir_hora_fin),
+                            expand=True
+                        ),
+                    ]),
+                ],
+                scroll=ft.ScrollMode.AUTO,
+                expand=True,
+                spacing=15,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             ),
 
+            # Botón siempre visible abajo
+            btn_guardar,
             ft.Container(height=10)
         ],
         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-        spacing=15,
+        spacing=10,
         expand=True
     )
 
-    # --- CONTENEDOR PRINCIPAL ---
     contenedor = ft.Container(
         content=vista_principal,
         expand=True
     )
 
-    # --- FUNCIONES DE NAVEGACIÓN ---
     def abrir_formulario(categoria):
         estado["categoria"] = categoria
         estado["fecha"] = ""
@@ -268,13 +269,13 @@ def obtener_vista_inicio(page, correo_usuario):
         descripcion = campo_descripcion.content.value.strip()
 
         if not nombre:
-            mostrar_snackbar(page,"⚠️ El nombre de la actividad es obligatorio", ft.Colors.ORANGE_700)
+            mostrar_snackbar(page, "⚠️ El nombre de la actividad es obligatorio", ft.Colors.ORANGE_700)
             return
         if not estado["fecha"]:
-            mostrar_snackbar(page,"⚠️ Debes seleccionar una fecha", ft.Colors.ORANGE_700)
+            mostrar_snackbar(page, "⚠️ Debes seleccionar una fecha", ft.Colors.ORANGE_700)
             return
         if not estado["hora_inicio"] or not estado["hora_fin"]:
-            mostrar_snackbar(page,"⚠️ Debes seleccionar hora de inicio y fin", ft.Colors.ORANGE_700)
+            mostrar_snackbar(page, "⚠️ Debes seleccionar hora de inicio y fin", ft.Colors.ORANGE_700)
             return
 
         exito = agregar_actividad_db(
@@ -288,10 +289,10 @@ def obtener_vista_inicio(page, correo_usuario):
         )
 
         if exito:
-            mostrar_snackbar(page,"✅ Actividad registrada correctamente", ft.Colors.GREEN_700)
+            mostrar_snackbar(page, "✅ Actividad registrada correctamente", ft.Colors.GREEN_700)
             volver_principal()
         else:
-            mostrar_snackbar(page,"❌ Error al guardar la actividad", ft.Colors.RED_700)
+            mostrar_snackbar(page, "❌ Error al guardar la actividad", ft.Colors.RED_700)
 
     return contenedor
 

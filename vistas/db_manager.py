@@ -258,3 +258,16 @@ def actualizar_actividad_db(actividad_id, categoria=None, nombre=None, descripci
         return False
     finally:
         db.close()
+
+
+def limpiar_datos():
+    db = conectar_db()
+    try:
+        cursor = db.cursor()
+        cursor.execute("DELETE FROM actividades")
+        cursor.execute("DELETE FROM usuarios")
+        cursor.execute("DELETE FROM sqlite_sequence")  # resetea los IDs autoincrement
+        db.commit()
+        print("Datos eliminados correctamente.")
+    finally:
+        db.close()
