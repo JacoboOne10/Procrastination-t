@@ -203,6 +203,20 @@ def obtener_actividades_por_fecha_db(usuario_correo, fecha):
     finally:
         db.close()
 
+def obtener_actividades_por_rango_db(usuario_correo, fecha_inicio, fecha_fin):
+    """Actividades entre dos fechas (formato 'YYYY-MM-DD')."""
+    db = conectar_db()
+    try:
+        cursor = db.cursor()
+        cursor.execute("""
+            SELECT id, categoria, nombre, descripcion, fecha, hora_inicio, hora_fin
+            FROM actividades
+            WHERE usuario_correo = ? AND fecha BETWEEN ? AND ?
+            ORDER BY fecha DESC, hora_inicio ASC
+        """, (usuario_correo, fecha_inicio, fecha_fin))
+        return cursor.fetchall()
+    finally:
+        db.close()
 
 def eliminar_actividad_db(actividad_id):
     db = conectar_db()

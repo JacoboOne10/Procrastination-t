@@ -4,7 +4,9 @@ from vistas.login import obtener_vista_login
 from vistas.registro import obtener_vista_registro
 from vistas.inicio import obtener_vista_inicio
 from vistas.perfil import obtener_vista_perfil
-from vistas.modificar_datos import obtener_vista_modificar # Importamos la nueva vista
+from vistas.modificar_datos import obtener_vista_modificar
+from vistas.estadisticas import obtener_vista_estadisticas
+
 
 def main(page: ft.Page):
     crear_tablas()
@@ -56,13 +58,10 @@ def main(page: ft.Page):
         capa_dock.visible = False
 
         def volver_y_actualizar(nuevo_nombre=None, nuevo_correo=None):
-            # 1. Si el usuario cambió su correo, actualizamos el "ID" de la sesión
             if nuevo_correo:
                 sesion_actual["correo"] = nuevo_correo
             if nuevo_nombre:
                 sesion_actual["nombre"] = nuevo_nombre
-
-            # 2. Reactivamos el dock y refrescamos la pestaña de perfil
             capa_dock.visible = True
             cambiar_pestana_manual(2)
             page.update()
@@ -71,29 +70,25 @@ def main(page: ft.Page):
             page,
             sesion_actual["nombre"],
             sesion_actual["correo"],
-            al_finalizar=volver_y_actualizar  # Pasamos la nueva función de retorno
+            al_finalizar=volver_y_actualizar
         )
         page.update()
 
     def cambiar_pestana_manual(indice):
-        iconos_base = [ft.Icons.HOME_OUTLINED, ft.Icons.BAR_CHART_OUTLINED, ft.Icons.PERSON_OUTLINE]
-        iconos_solid = [ft.Icons.HOME, ft.Icons.BAR_CHART, ft.Icons.PERSON]
+        iconos_base = [ft.Icons.HOME_OUTLINED, ft.Icons.INSERT_CHART_OUTLINED, ft.Icons.PERSON_OUTLINE]
+        iconos_solid = [ft.Icons.HOME, ft.Icons.INSERT_CHART, ft.Icons.PERSON]
 
         for i, item in enumerate(capa_dock.content.controls):
             item.content.controls[0].icon = iconos_solid[i] if i == indice else iconos_base[i]
 
         if indice == 0:
-            contenido_celular.content = obtener_vista_inicio(page, sesion_actual["correo"])  # <-- agrega el correo
+            contenido_celular.content = obtener_vista_inicio(page, sesion_actual["correo"])
         elif indice == 1:
-            contenido_celular.content = ft.Container(
-                content=ft.Text("Estadísticas de Productividad", color=ft.Colors.BLUE_900, size=20, weight="bold"),
-                alignment=ft.alignment.center
-            )
+            contenido_celular.content = obtener_vista_estadisticas(page, sesion_actual["correo"])
         elif indice == 2:
-            # PASAMOS LA NUEVA FUNCIÓN AL PERFIL
             contenido_celular.content = obtener_vista_perfil(
                 cerrar_sesion,
-                ir_a_modificar_datos, # <--- Conexión aquí
+                ir_a_modificar_datos,
                 nombre=sesion_actual["nombre"],
                 correo=sesion_actual["correo"]
             )
@@ -103,7 +98,7 @@ def main(page: ft.Page):
     capa_dock = ft.Container(
         content=ft.Row([
             crear_item_dock(ft.Icons.HOME_OUTLINED, ft.Icons.HOME, 0, seleccionado=True),
-            crear_item_dock(ft.Icons.BAR_CHART_OUTLINED, ft.Icons.BAR_CHART, 1),
+            crear_item_dock(ft.Icons.INSERT_CHART_OUTLINED, ft.Icons.INSERT_CHART, 1),
             crear_item_dock(ft.Icons.PERSON_OUTLINE, ft.Icons.PERSON, 2),
         ], alignment=ft.MainAxisAlignment.SPACE_AROUND, spacing=0),
         bgcolor=ft.Colors.WHITE,
@@ -127,6 +122,7 @@ def main(page: ft.Page):
 
     page.add(celular)
     ir_a_login()
+
 
 if __name__ == "__main__":
     ft.run(main, assets_dir="images")
