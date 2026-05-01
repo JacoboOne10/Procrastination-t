@@ -1,6 +1,6 @@
 import flet as ft
 
-def obtener_vista_perfil(on_logout, ir_a_modificar, nombre="Usuario", correo="correo@ejemplo.com"):
+def obtener_vista_perfil(on_logout, ir_a_modificar, on_borrar, nombre="Usuario", correo="correo@ejemplo.com"):
     # --- 1. DEFINIR COLORES ---
     color_titulo = ft.Colors.BLUE_900
     color_texto = ft.Colors.BLACK
@@ -55,6 +55,18 @@ def obtener_vista_perfil(on_logout, ir_a_modificar, nombre="Usuario", correo="co
 
                 ft.Container(
                     content=ft.ListTile(
+                        leading=ft.Icon(ft.Icons.DELETE_FOREVER_ROUNDED, color=color_logout),
+                        title=ft.Text("Borrar Cuenta", color=color_logout, weight="bold"),
+                        on_click=on_borrar
+                    ),
+                    bgcolor=ft.Colors.WHITE,
+                    border_radius=15,
+                    height=55,
+                    shadow=ft.BoxShadow(blur_radius=5, color=ft.Colors.with_opacity(0.05, ft.Colors.BLACK))
+                ),
+
+                ft.Container(
+                    content=ft.ListTile(
                         leading=ft.Icon(ft.Icons.LOGOUT_ROUNDED, color=color_logout),
                         title=ft.Text("Cerrar Sesión", color=color_logout, weight="bold"),
                         on_click=on_logout
@@ -88,8 +100,7 @@ if __name__ == "__main__":
             image=ft.DecorationImage(src="/5.jpg", fit="cover"),
             padding=ft.Padding(top=40, left=20, right=20, bottom=20),
             # Pasamos datos de prueba para ver cómo se ve
-            content=obtener_vista_perfil(mock_logout, "Erick Landaverde Jacobo", "erick10jacobo@gmail.com")
-        )
+            content=obtener_vista_perfil(mock_logout, lambda e: None, lambda e: None, "Prueba","prueba@prueba.com")        )
 
         page.add(celular_test)
         page.update()

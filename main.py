@@ -1,5 +1,5 @@
 import flet as ft
-from vistas.db_manager import crear_tablas
+from vistas.db_manager import crear_tablas, conectar_db
 from vistas.login import obtener_vista_login
 from vistas.registro import obtener_vista_registro
 from vistas.inicio import obtener_vista_inicio
@@ -74,6 +74,50 @@ def main(page: ft.Page):
         )
         page.update()
 
+    def confirmar_borrar_cuenta(e):
+        def hacer_borrar(e):
+            dialog.open = False
+            page.update()
+            db = conectar_db()
+            try:
+                cursor = db.cursor()
+                cursor.execute(
+                    "DELETE FROM actividades WHERE usuario_correo = ?",
+                    (sesion_actual["correo"],)
+                )
+                cursor.execute(
+                    "DELETE FROM usuarios WHERE correo = ?",
+                    (sesion_actual["correo"],)
+                )
+                db.commit()
+            finally:
+                db.close()
+            ir_a_login()
+
+        def cancelar(e):
+            dialog.open = False
+            page.update()
+
+        dialog = ft.AlertDialog(
+            bgcolor=ft.Colors.WHITE,
+            title=ft.Text("Borrar cuenta", color=ft.Colors.BLACK),
+            content=ft.Text(
+                "¿Estás seguro? Se eliminarán tu cuenta y todas tus actividades. "
+                "Esta acción no se puede deshacer.",
+                color=ft.Colors.BLACK
+            ),
+            actions=[
+                ft.TextButton("Cancelar", on_click=cancelar,
+                              style=ft.ButtonStyle(color=ft.Colors.BLUE_900)),
+                ft.TextButton("Borrar", on_click=hacer_borrar,
+                              style=ft.ButtonStyle(color=ft.Colors.RED_700)),
+            ]
+        )
+
+        page.overlay.append(dialog)
+        dialog.open = True
+        page.update()
+
     def cambiar_pestana_manual(indice):
         iconos_base = [ft.Icons.HOME_OUTLINED, ft.Icons.INSERT_CHART_OUTLINED, ft.Icons.PERSON_OUTLINE]
         iconos_solid = [ft.Icons.HOME, ft.Icons.INSERT_CHART, ft.Icons.PERSON]
@@ -89,6 +133,7 @@ def main(page: ft.Page):
             contenido_celular.content = obtener_vista_perfil(
                 cerrar_sesion,
                 ir_a_modificar_datos,
+                confirmar_borrar_cuenta,
                 nombre=sesion_actual["nombre"],
                 correo=sesion_actual["correo"]
             )

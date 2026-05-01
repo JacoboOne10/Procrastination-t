@@ -13,7 +13,16 @@ def obtener_vista_estadisticas(page, correo_usuario):
     color_azul = ft.Colors.BLUE_900
     color_naranja = ft.Colors.ORANGE_600
 
-    modo = {"actual": "semana", "historial_completo": False}
+    modo = {
+        "actual": "semana",
+    }
+
+    opciones_labels = {
+        "dia": "Hoy",
+        "semana": "Esta semana",
+        "mes": "Este mes",
+        "todo": "Todo el tiempo",
+    }
 
     # ──────────────────────────────────────────
     #  UTILIDADES
@@ -41,8 +50,7 @@ def obtener_vista_estadisticas(page, correo_usuario):
     def obtener_rango_semana():
         hoy = date.today()
         inicio = hoy - timedelta(days=hoy.weekday())
-        fin = inicio + timedelta(days=6)
-        return inicio, fin
+        return inicio, inicio + timedelta(days=6)
 
     def obtener_rango_mes():
         hoy = date.today()
@@ -62,28 +70,25 @@ def obtener_vista_estadisticas(page, correo_usuario):
         if total == 0:
             return ft.Container(
                 content=ft.Text("Sin datos", color=ft.Colors.GREY_500, size=13),
-                alignment=ft.Alignment(0, 0),
-                height=60
+                alignment=ft.Alignment(0, 0), height=60
             )
-
         porc_ac = (total_academica / total) * 100
         porc_oc = (total_ocio / total) * 100
-
-        barra_academica = ft.Container(
-            bgcolor=ft.Colors.BLUE_700,
-            border_radius=ft.BorderRadius(top_left=8, top_right=0, bottom_left=8, bottom_right=0),
-            expand=int(round(porc_ac)) if porc_ac > 0 else 1,
-            height=22
-        )
-        barra_ocio = ft.Container(
-            bgcolor=color_naranja,
-            border_radius=ft.BorderRadius(top_left=0, top_right=8, bottom_left=0, bottom_right=8),
-            expand=int(round(porc_oc)) if porc_oc > 0 else 1,
-            height=22
-        )
-
         return ft.Column([
-            ft.Row([barra_academica, barra_ocio], spacing=2),
+            ft.Row([
+                ft.Container(
+                    bgcolor=ft.Colors.BLUE_700,
+                    border_radius=ft.BorderRadius(top_left=8, top_right=0, bottom_left=8, bottom_right=0),
+                    expand=int(round(porc_ac)) if porc_ac > 0 else 1,
+                    height=22
+                ),
+                ft.Container(
+                    bgcolor=color_naranja,
+                    border_radius=ft.BorderRadius(top_left=0, top_right=8, bottom_left=0, bottom_right=8),
+                    expand=int(round(porc_oc)) if porc_oc > 0 else 1,
+                    height=22
+                ),
+            ], spacing=2),
             ft.Row([
                 ft.Container(width=12, height=12, bgcolor=ft.Colors.BLUE_700, border_radius=3),
                 ft.Text(f"Académica {porc_ac:.0f}%", size=12, color=ft.Colors.GREY_700),
@@ -94,91 +99,46 @@ def obtener_vista_estadisticas(page, correo_usuario):
         ], spacing=8)
 
     # ──────────────────────────────────────────
-    #  GRÁFICA DE BARRAS
+    #  CONTENEDORES
     # ──────────────────────────────────────────
 
-    def construir_barras(datos_barras, etiquetas):
-        todos_valores = [
-            datos_barras[i]["Académica"] + datos_barras[i]["Ocio"]
-            for i in range(len(etiquetas))
-        ]
-        max_val = max(todos_valores) if todos_valores and max(todos_valores) > 0 else 1
-        max_val_ceil = max(1, int(max_val) + (1 if max_val % 1 > 0 else 0))
-        altura_max = 100
+    contenedor_stats = ft.Column(scroll=ft.ScrollMode.HIDDEN, expand=True, spacing=12)
+    contenedor_principal = ft.Container(expand=True)
 
-        num_marcas = min(4, max_val_ceil)
-        paso = max(1, max_val_ceil // num_marcas)
-        marcas_y = list(range(0, max_val_ceil + 1, paso))
+    # ──────────────────────────────────────────
+    #  CONFIRMACIÓN ELIMINAR
+    # ──────────────────────────────────────────
 
-        barras = []
-        etiquetas_x = []
+    def confirmar_eliminar(act_id, nombre_act):
+        def hacer_eliminar(e):
+            dialog.open = False
+            page.update()
+            exito = eliminar_actividad_db(act_id)
+            if exito:
+                mostrar_snackbar(page, "✅ Actividad eliminada", ft.Colors.GREEN_700)
+                construir_vista()
+            else:
+                mostrar_snackbar(page, "❌ Error al eliminar", ft.Colors.RED_700)
 
-        for i, etiqueta in enumerate(etiquetas):
-            h_ac = datos_barras[i]["Académica"]
-            h_oc = datos_barras[i]["Ocio"]
-            alt_ac = min(int((h_ac / max_val_ceil) * altura_max), altura_max)
-            alt_oc = min(int((h_oc / max_val_ceil) * altura_max), altura_max)
+        def cancelar(e):
+            dialog.open = False
+            page.update()
 
-            barras.append(
-                ft.Row([
-                    ft.Column([
-                        ft.Container(expand=True),
-                        ft.Container(
-                            bgcolor=ft.Colors.BLUE_700,
-                            width=12,
-                            height=max(alt_ac, 2),
-                            border_radius=ft.BorderRadius(top_left=3, top_right=3, bottom_left=0, bottom_right=0)
-                        )
-                    ], expand=True, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
-                    ft.Column([
-                        ft.Container(expand=True),
-                        ft.Container(
-                            bgcolor=color_naranja,
-                            width=12,
-                            height=max(alt_oc, 2),
-                            border_radius=ft.BorderRadius(top_left=3, top_right=3, bottom_left=0, bottom_right=0)
-                        )
-                    ], expand=True, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
-                ], height=altura_max, spacing=3, alignment=ft.MainAxisAlignment.END, expand=True)
-            )
-
-            etiquetas_x.append(
-                ft.Text(etiqueta, size=11, color=ft.Colors.GREY_600, text_align=ft.TextAlign.CENTER, expand=True)
-            )
-
-        eje_y = ft.Column(
-            controls=[ft.Text(f"{v}h", size=10, color=ft.Colors.GREY_400) for v in reversed(marcas_y)],
-            height=altura_max,
-            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-            horizontal_alignment=ft.CrossAxisAlignment.END,
-            width=24
+        dialog = ft.AlertDialog(
+            bgcolor=ft.Colors.WHITE,
+            title=ft.Text("Eliminar actividad", color=ft.Colors.BLACK),
+            content=ft.Text(f"¿Eliminar \"{nombre_act}\"? Esta acción no se puede deshacer.", color=ft.Colors.BLACK),
+            actions=[
+                ft.TextButton("Cancelar", on_click=cancelar,
+                              style=ft.ButtonStyle(color=ft.Colors.BLUE_900)),
+                ft.TextButton("Eliminar", on_click=hacer_eliminar,
+                              style=ft.ButtonStyle(color=ft.Colors.RED_700)),
+            ]
         )
 
-        return ft.Row([
-            ft.Column([eje_y, ft.Container(height=18)], spacing=0),
-            ft.Container(width=1),
-            ft.Column([
-                ft.Container(
-                    content=ft.Row(barras, alignment=ft.MainAxisAlignment.SPACE_AROUND),
-                    height=altura_max,
-                    clip_behavior=ft.ClipBehavior.HARD_EDGE,
-                    expand=True
-                ),
-                ft.Row(etiquetas_x, alignment=ft.MainAxisAlignment.SPACE_AROUND)
-            ], spacing=4, expand=True)
-        ], vertical_alignment=ft.CrossAxisAlignment.START)
-
-    # ──────────────────────────────────────────
-    #  CONTENEDOR PRINCIPAL
-    # ──────────────────────────────────────────
-
-    contenedor_stats = ft.Column(
-        scroll=ft.ScrollMode.HIDDEN,
-        expand=True,
-        spacing=12
-    )
-
-    contenedor_principal = ft.Container(expand=True)
+        page.overlay.append(dialog)
+        dialog.open = True
+        page.update()
 
     # ──────────────────────────────────────────
     #  VISTA EDICIÓN
@@ -187,12 +147,7 @@ def obtener_vista_estadisticas(page, correo_usuario):
     def abrir_edicion(act):
         act_id, categoria, nombre, descripcion, fecha, hora_inicio, hora_fin = act
 
-        estado_edit = {
-            "fecha": fecha,
-            "hora_inicio": hora_inicio,
-            "hora_fin": hora_fin,
-            "categoria": categoria
-        }
+        estado_edit = {"fecha": fecha, "hora_inicio": hora_inicio, "hora_fin": hora_fin}
 
         txt_fecha_e = ft.Text(
             datetime.strptime(fecha, "%Y-%m-%d").strftime("%d/%m/%Y"),
@@ -203,33 +158,24 @@ def obtener_vista_estadisticas(page, correo_usuario):
 
         campo_nombre_e = ft.Container(
             content=ft.TextField(
-                value=nombre,
-                label="Nombre de la actividad",
+                value=nombre, label="Nombre de la actividad",
                 prefix_icon=ft.Icons.EDIT_NOTE_ROUNDED,
-                border=ft.InputBorder.NONE,
-                bgcolor=ft.Colors.TRANSPARENT,
-                color=ft.Colors.BLACK,
+                border=ft.InputBorder.NONE, bgcolor=ft.Colors.TRANSPARENT, color=ft.Colors.BLACK,
                 content_padding=ft.Padding.only(top=10, bottom=10, left=10, right=10),
             ),
-            bgcolor=ft.Colors.WHITE, border_radius=15,
-            padding=ft.Padding.only(left=10, right=10),
+            bgcolor=ft.Colors.WHITE, border_radius=15, padding=ft.Padding.only(left=10, right=10),
             shadow=ft.BoxShadow(blur_radius=10, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK), offset=ft.Offset(0, 4))
         )
 
         campo_desc_e = ft.Container(
             content=ft.TextField(
-                value=descripcion or "",
-                label="Descripción (opcional)",
+                value=descripcion or "", label="Descripción (opcional)",
                 prefix_icon=ft.Icons.NOTES_ROUNDED,
-                border=ft.InputBorder.NONE,
-                bgcolor=ft.Colors.TRANSPARENT,
-                color=ft.Colors.BLACK,
-                multiline=True,
-                max_lines=3,
+                border=ft.InputBorder.NONE, bgcolor=ft.Colors.TRANSPARENT, color=ft.Colors.BLACK,
+                multiline=True, max_lines=3,
                 content_padding=ft.Padding.only(top=10, bottom=10, left=10, right=10),
             ),
-            bgcolor=ft.Colors.WHITE, border_radius=15,
-            padding=ft.Padding.only(left=10, right=10),
+            bgcolor=ft.Colors.WHITE, border_radius=15, padding=ft.Padding.only(left=10, right=10),
             shadow=ft.BoxShadow(blur_radius=10, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK), offset=ft.Offset(0, 4))
         )
 
@@ -260,8 +206,7 @@ def obtener_vista_estadisticas(page, correo_usuario):
         def crear_btn_picker_e(icono, texto_ref, on_click):
             return ft.Container(
                 content=ft.Column([
-                    ft.Icon(icono, color=color_azul, size=20),
-                    texto_ref
+                    ft.Icon(icono, color=color_azul, size=20), texto_ref
                 ], spacing=5, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
                 bgcolor=ft.Colors.WHITE, border_radius=15,
                 padding=ft.Padding.only(left=15, right=15, top=15, bottom=15),
@@ -279,12 +224,8 @@ def obtener_vista_estadisticas(page, correo_usuario):
                 mostrar_snackbar(page, "⚠️ El nombre es obligatorio", ft.Colors.ORANGE_700)
                 return
             exito = actualizar_actividad_db(
-                act_id,
-                nombre=nuevo_nombre,
-                descripcion=nueva_desc,
-                fecha=estado_edit["fecha"],
-                hora_inicio=estado_edit["hora_inicio"],
-                hora_fin=estado_edit["hora_fin"]
+                act_id, nombre=nuevo_nombre, descripcion=nueva_desc,
+                fecha=estado_edit["fecha"], hora_inicio=estado_edit["hora_inicio"], hora_fin=estado_edit["hora_fin"]
             )
             if exito:
                 mostrar_snackbar(page, "✅ Actividad actualizada", ft.Colors.GREEN_700)
@@ -297,37 +238,29 @@ def obtener_vista_estadisticas(page, correo_usuario):
             ft.Column(
                 controls=[
                     ft.Row([
-                        ft.IconButton(
-                            icon=ft.Icons.ARROW_BACK_IOS_NEW_ROUNDED,
-                            icon_color=color_azul,
-                            on_click=lambda _: volver_stats()
-                        )
+                        ft.IconButton(icon=ft.Icons.ARROW_BACK_IOS_NEW_ROUNDED, icon_color=color_azul, on_click=lambda _: volver_stats())
                     ], alignment=ft.MainAxisAlignment.START),
-
-                    ft.Row([
-                        ft.Icon(icono_cat, color=color_cat, size=26),
-                        ft.Text(f"Editar — {categoria}", size=20, weight="bold", color=color_cat)
-                    ], spacing=10),
-
+                    ft.Row([ft.Icon(icono_cat, color=color_cat, size=26),
+                            ft.Text(f"Editar — {categoria}", size=20, weight="bold", color=color_cat)], spacing=10),
                     ft.Container(height=5),
-                    campo_nombre_e,
-                    campo_desc_e,
-                    crear_btn_picker_e(ft.Icons.CALENDAR_MONTH_ROUNDED, txt_fecha_e, lambda e: (setattr(dp_e, "open", True), page.update())),
+                    campo_nombre_e, campo_desc_e,
+                    crear_btn_picker_e(ft.Icons.CALENDAR_MONTH_ROUNDED, txt_fecha_e,
+                                       lambda e: (setattr(dp_e, "open", True), page.update())),
                     ft.Row([
-                        ft.Container(content=crear_btn_picker_e(ft.Icons.ACCESS_TIME_ROUNDED, txt_hora_ini_e, lambda e: (setattr(tp_ini_e, "open", True), page.update())), expand=True),
+                        ft.Container(content=crear_btn_picker_e(ft.Icons.ACCESS_TIME_ROUNDED, txt_hora_ini_e,
+                                                                 lambda e: (setattr(tp_ini_e, "open", True), page.update())), expand=True),
                         ft.Container(width=10),
-                        ft.Container(content=crear_btn_picker_e(ft.Icons.TIMER_OFF_ROUNDED, txt_hora_fin_e, lambda e: (setattr(tp_fin_e, "open", True), page.update())), expand=True),
+                        ft.Container(content=crear_btn_picker_e(ft.Icons.TIMER_OFF_ROUNDED, txt_hora_fin_e,
+                                                                 lambda e: (setattr(tp_fin_e, "open", True), page.update())), expand=True),
                     ]),
                 ],
-                scroll=ft.ScrollMode.AUTO,
-                expand=True,
-                spacing=15,
+                scroll=ft.ScrollMode.AUTO, expand=True, spacing=15,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             ),
             ft.Container(
                 content=ft.Text("Guardar cambios", size=14, weight="bold", color=ft.Colors.WHITE),
-                bgcolor=color_azul, border_radius=15, height=55,
-                alignment=ft.Alignment(0, 0), on_click=guardar_edicion,
+                bgcolor=color_azul, border_radius=15, height=55, alignment=ft.Alignment(0, 0),
+                on_click=guardar_edicion,
                 shadow=ft.BoxShadow(blur_radius=10, color=ft.Colors.with_opacity(0.3, ft.Colors.BLACK), offset=ft.Offset(0, 4))
             ),
             ft.Container(height=10)
@@ -340,6 +273,7 @@ def obtener_vista_estadisticas(page, correo_usuario):
         contenedor_principal.content = vista_stats
         page.update()
 
+
     # ──────────────────────────────────────────
     #  CONSTRUIR VISTA STATS
     # ──────────────────────────────────────────
@@ -347,51 +281,79 @@ def obtener_vista_estadisticas(page, correo_usuario):
     def construir_vista():
         contenedor_stats.controls.clear()
 
-        if modo["actual"] == "semana":
-            inicio, fin = obtener_rango_semana()
-        else:
-            inicio, fin = obtener_rango_mes()
+        actual = modo["actual"]
 
-        actividades_periodo = obtener_actividades_por_rango_db(
-            correo_usuario,
-            inicio.strftime("%Y-%m-%d"),
-            fin.strftime("%Y-%m-%d")
+        # ── Determinar rango y actividades ──
+        if actual == "dia":
+            hoy = date.today()
+            inicio, fin = hoy, hoy
+            actividades_periodo = obtener_actividades_por_rango_db(
+                correo_usuario, hoy.strftime("%Y-%m-%d"), hoy.strftime("%Y-%m-%d")
+            )
+        elif actual == "semana":
+            inicio, fin = obtener_rango_semana()
+            actividades_periodo = obtener_actividades_por_rango_db(
+                correo_usuario, inicio.strftime("%Y-%m-%d"), fin.strftime("%Y-%m-%d")
+            )
+        elif actual == "mes":
+            inicio, fin = obtener_rango_mes()
+            actividades_periodo = obtener_actividades_por_rango_db(
+                correo_usuario, inicio.strftime("%Y-%m-%d"), fin.strftime("%Y-%m-%d")
+            )
+        else:  # todo
+            actividades_periodo = obtener_actividades_db(correo_usuario)
+            inicio = fin = date.today()
+
+        # ── Totales ──
+        total_academica = sum(
+            calcular_duracion_horas(a[5], a[6]) for a in actividades_periodo if a[1] == "Académica"
+        )
+        total_ocio = sum(
+            calcular_duracion_horas(a[5], a[6]) for a in actividades_periodo if a[1] == "Ocio"
         )
 
-        if modo["historial_completo"]:
-            actividades_historial = obtener_actividades_db(correo_usuario)
-        else:
-            actividades_historial = actividades_periodo
+        # ── Datos para barras ──
+        if actual == "dia":
+            datos_barras = {0: {"Académica": total_academica, "Ocio": total_ocio}}
+            etiquetas_barras = ["Hoy"]
+            titulo_barras = "Horas de hoy"
 
-        total_academica = 0.0
-        total_ocio = 0.0
-
-        if modo["actual"] == "semana":
+        elif actual == "semana":
             datos_barras = {i: {"Académica": 0.0, "Ocio": 0.0} for i in range(7)}
-            etiquetas = ["L", "M", "X", "J", "V", "S", "D"]
+            etiquetas_barras = ["L", "M", "X", "J", "V", "S", "D"]
+            titulo_barras = "Horas por día"
             for act in actividades_periodo:
                 horas = calcular_duracion_horas(act[5], act[6])
                 fecha_act = datetime.strptime(act[4], "%Y-%m-%d").date()
-                dia_idx = (fecha_act - inicio).days
-                if 0 <= dia_idx <= 6:
-                    datos_barras[dia_idx][act[1]] += horas
-                if act[1] == "Académica":
-                    total_academica += horas
-                else:
-                    total_ocio += horas
-        else:
+                idx = (fecha_act - inicio).days
+                if 0 <= idx <= 6:
+                    datos_barras[idx][act[1]] += horas
+
+        elif actual == "mes":
             datos_barras = {i: {"Académica": 0.0, "Ocio": 0.0} for i in range(5)}
-            etiquetas = [f"S{i + 1}" for i in range(5)]
+            etiquetas_barras = [f"S{i + 1}" for i in range(5)]
+            titulo_barras = "Horas por semana"
             for act in actividades_periodo:
                 horas = calcular_duracion_horas(act[5], act[6])
                 fecha_act = datetime.strptime(act[4], "%Y-%m-%d").date()
-                semana_idx = (fecha_act - inicio).days // 7
-                if 0 <= semana_idx <= 4:
-                    datos_barras[semana_idx][act[1]] += horas
-                if act[1] == "Académica":
-                    total_academica += horas
-                else:
-                    total_ocio += horas
+                idx = (fecha_act - inicio).days // 7
+                if 0 <= idx <= 4:
+                    datos_barras[idx][act[1]] += horas
+
+        else:  # todo
+            meses = {}
+            for act in actividades_periodo:
+                mes_key = act[4][:7]
+                if mes_key not in meses:
+                    meses[mes_key] = {"Académica": 0.0, "Ocio": 0.0}
+                horas = calcular_duracion_horas(act[5], act[6])
+                meses[mes_key][act[1]] += horas
+            meses_ordenados = sorted(meses.keys())
+            datos_barras = {i: meses[k] for i, k in enumerate(meses_ordenados)}
+            etiquetas_barras = [
+                datetime.strptime(k + "-01", "%Y-%m-%d").strftime("%b") for k in meses_ordenados
+            ] if meses_ordenados else [""]
+            titulo_barras = "Horas por mes"
 
         # ── TARJETAS RESUMEN ──
         def tarjeta_resumen(titulo, horas, color, icono):
@@ -426,27 +388,15 @@ def obtener_vista_estadisticas(page, correo_usuario):
             )
         )
 
-        # ── BARRAS ──
-        contenedor_stats.controls.append(
-            ft.Container(
-                content=ft.Column([
-                    ft.Text(
-                        "Horas por día" if modo["actual"] == "semana" else "Horas por semana",
-                        size=16, weight="bold", color=color_azul
-                    ),
-                    ft.Container(height=5),
-                    construir_barras(datos_barras, etiquetas),
-                ]),
-                bgcolor=ft.Colors.WHITE, border_radius=15,
-                padding=ft.Padding.only(left=5, right=15, top=15, bottom=15),
-                shadow=ft.BoxShadow(blur_radius=10, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK), offset=ft.Offset(0, 4))
-            )
-        )
-
         # ── HISTORIAL ──
+        if actual == "todo":
+            actividades_historial = obtener_actividades_db(correo_usuario)
+        else:
+            actividades_historial = actividades_periodo
+
         contenedor_stats.controls.append(
             ft.Text(
-                "Historial completo" if modo["historial_completo"] else "Historial de actividades",
+                "Historial completo" if actual == "todo" else "Historial de actividades",
                 size=16, weight="bold", color=color_azul
             )
         )
@@ -473,13 +423,21 @@ def obtener_vista_estadisticas(page, correo_usuario):
                             ft.Text(descripcion, size=12, color=ft.Colors.GREY_600, expand=True),
                         ], spacing=5),
                         ft.Row([
-                            ft.TextButton(
-                                "Editar",
+                            ft.IconButton(
                                 icon=ft.Icons.EDIT_OUTLINED,
-                                on_click=lambda e, a=act: abrir_edicion(a),
-                                style=ft.ButtonStyle(color=color_azul)
+                                icon_color=color_azul,
+                                icon_size=20,
+                                tooltip="Editar",
+                                on_click=lambda e, a=act: abrir_edicion(a)
                             ),
-                        ], alignment=ft.MainAxisAlignment.END)
+                            ft.IconButton(
+                                icon=ft.Icons.DELETE_OUTLINE_ROUNDED,
+                                icon_color=ft.Colors.RED_400,
+                                icon_size=20,
+                                tooltip="Eliminar",
+                                on_click=lambda e, ai=act_id, an=act[2]: confirmar_eliminar(ai, an)
+                            ),
+                        ], alignment=ft.MainAxisAlignment.END, spacing=0),
                     ], spacing=6),
                     visible=False,
                     padding=ft.Padding.only(top=8)
@@ -487,54 +445,45 @@ def obtener_vista_estadisticas(page, correo_usuario):
 
                 flecha = ft.Icon(ft.Icons.KEYBOARD_ARROW_DOWN_ROUNDED, color=ft.Colors.GREY_400, size=20)
 
+                estado_detalle = {"abierto": None, "flecha": None}
+
                 def hacer_toggle(e, d=detalle, f=flecha):
+                    # Cerrar el que estaba abierto
+                    if estado_detalle["abierto"] and estado_detalle["abierto"] != d:
+                        estado_detalle["abierto"].visible = False
+                        estado_detalle["flecha"].name = ft.Icons.KEYBOARD_ARROW_DOWN_ROUNDED
+
+                    # Toggle del actual
                     d.visible = not d.visible
                     f.name = ft.Icons.KEYBOARD_ARROW_UP_ROUNDED if d.visible else ft.Icons.KEYBOARD_ARROW_DOWN_ROUNDED
+
+                    # Guardar el abierto actual
+                    estado_detalle["abierto"] = d if d.visible else None
+                    estado_detalle["flecha"] = f if d.visible else None
+
                     page.update()
 
-                tarjeta = ft.Container(
-                    content=ft.Column([
-                        ft.Row([
-                            ft.Icon(icono_cat, color=color_cat, size=22),
-                            ft.Column([
-                                ft.Text(act[2], size=14, weight="bold", color=ft.Colors.BLACK87),
-                                ft.Text(fecha_str, size=11, color=ft.Colors.GREY_500),
-                            ], spacing=2, expand=True),
-                            ft.Text(tiempo_str, size=13, weight="bold", color=color_cat),
-                            flecha,
-                        ]),
-                        detalle,
-                    ], spacing=0),
-                    bgcolor=ft.Colors.WHITE, border_radius=12,
-                    padding=ft.Padding.only(left=15, right=15, top=12, bottom=12),
-                    shadow=ft.BoxShadow(blur_radius=8, color=ft.Colors.with_opacity(0.08, ft.Colors.BLACK), offset=ft.Offset(0, 3)),
-                    on_click=hacer_toggle
-                )
-                contenedor_stats.controls.append(tarjeta)
-
-            # ── BOTÓN VER HISTORIAL COMPLETO ──
-            if not modo["historial_completo"]:
                 contenedor_stats.controls.append(
                     ft.Container(
-                        content=ft.Row([
-                            ft.Icon(ft.Icons.HISTORY_ROUNDED, color=color_azul, size=18),
-                            ft.Text("Ver historial completo", size=13, color=color_azul, weight="bold"),
-                        ], alignment=ft.MainAxisAlignment.CENTER, spacing=8),
+                        content=ft.Column([
+                            ft.Row([
+                                ft.Icon(icono_cat, color=color_cat, size=22),
+                                ft.Column([
+                                    ft.Text(act[2], size=14, weight="bold", color=ft.Colors.BLACK87),
+                                    ft.Text(fecha_str, size=11, color=ft.Colors.GREY_500),
+                                ], spacing=2, expand=True),
+                                ft.Text(tiempo_str, size=13, weight="bold", color=color_cat),
+                                flecha,
+                            ]),
+                            detalle,
+                        ], spacing=0),
                         bgcolor=ft.Colors.WHITE, border_radius=12,
                         padding=ft.Padding.only(left=15, right=15, top=12, bottom=12),
                         shadow=ft.BoxShadow(blur_radius=8, color=ft.Colors.with_opacity(0.08, ft.Colors.BLACK), offset=ft.Offset(0, 3)),
-                        on_click=lambda _: cambiar_historial_completo()
+                        on_click=hacer_toggle
                     )
                 )
-            else:
-                contenedor_stats.controls.append(
-                    ft.TextButton(
-                        "Mostrar menos",
-                        icon=ft.Icons.KEYBOARD_ARROW_UP_ROUNDED,
-                        on_click=lambda _: cambiar_historial_completo(),
-                        style=ft.ButtonStyle(color=ft.Colors.GREY_500)
-                    )
-                )
+
         else:
             contenedor_stats.controls.append(
                 ft.Container(
@@ -545,52 +494,100 @@ def obtener_vista_estadisticas(page, correo_usuario):
 
         page.update()
 
-    def cambiar_historial_completo():
-        modo["historial_completo"] = not modo["historial_completo"]
-        construir_vista()
 
-    # ── TOGGLE SEMANA / MES ──
-    btn_semana = ft.Container(
-        content=ft.Text("Semana", size=13, weight="bold", color=ft.Colors.WHITE),
-        bgcolor=color_azul, border_radius=10,
-        padding=ft.Padding.only(left=20, right=20, top=8, bottom=8),
-        on_click=lambda _: cambiar_modo("semana")
+    # ── DROPDOWN PERSONALIZADO ──
+    dropdown_abierto = {"valor": False}
+
+    def crear_opcion(key, label):
+        cont = ft.Container(
+            content=ft.Text(label, size=13, color=ft.Colors.GREY_800),
+            padding=ft.Padding.only(left=15, right=15, top=12, bottom=12),
+            border_radius=8,
+            bgcolor=ft.Colors.TRANSPARENT
+        )
+
+        def on_hover(e, c=cont):
+            c.bgcolor = ft.Colors.BLUE_50 if e.data == "true" else ft.Colors.TRANSPARENT
+            page.update()
+
+        def on_click(e, k=key):
+            cerrar_dropdown()
+            cambiar_modo(k)
+
+        cont.on_hover = on_hover
+        cont.on_click = on_click
+        return cont
+
+    panel_dropdown = ft.Container(
+        content=ft.Column(
+            [crear_opcion(k, l) for k, l in opciones_labels.items()],
+            spacing=0
+        ),
+        bgcolor=ft.Colors.WHITE,
+        border_radius=12,
+        shadow=ft.BoxShadow(
+            blur_radius=15,
+            color=ft.Colors.with_opacity(0.15, ft.Colors.BLACK),
+            offset=ft.Offset(0, 4)
+        ),
+        width=180,
+        padding=ft.Padding.only(top=5, bottom=5),
+        visible=False
     )
 
-    btn_mes = ft.Container(
-        content=ft.Text("Mes", size=13, weight="bold", color=ft.Colors.GREY_600),
-        bgcolor=ft.Colors.GREY_200, border_radius=10,
-        padding=ft.Padding.only(left=20, right=20, top=8, bottom=8),
-        on_click=lambda _: cambiar_modo("mes")
+    def abrir_dropdown(e):
+        if dropdown_abierto["valor"]:
+            cerrar_dropdown()
+        else:
+            dropdown_abierto["valor"] = True
+            panel_dropdown.visible = True
+            page.update()
+
+    def cerrar_dropdown():
+        dropdown_abierto["valor"] = False
+        panel_dropdown.visible = False
+        page.update()
+
+    label_btn_periodo = ft.Text("Esta semana", size=13, weight="bold", color=color_azul)
+
+    btn_periodo = ft.Container(
+        content=ft.Row([
+            label_btn_periodo,
+            ft.Icon(ft.Icons.KEYBOARD_ARROW_DOWN_ROUNDED, color=color_azul, size=18)
+        ], spacing=5, tight=True),
+        bgcolor=ft.Colors.WHITE,
+        border_radius=10,
+        padding=ft.Padding.only(left=15, right=10, top=8, bottom=8),
+        shadow=ft.BoxShadow(
+            blur_radius=8,
+            color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK),
+            offset=ft.Offset(0, 2)
+        ),
+        on_click=abrir_dropdown
     )
 
     def cambiar_modo(nuevo_modo):
         modo["actual"] = nuevo_modo
-        modo["historial_completo"] = False
-        if nuevo_modo == "semana":
-            btn_semana.bgcolor = color_azul
-            btn_semana.content.color = ft.Colors.WHITE
-            btn_mes.bgcolor = ft.Colors.GREY_200
-            btn_mes.content.color = ft.Colors.GREY_600
-        else:
-            btn_mes.bgcolor = color_azul
-            btn_mes.content.color = ft.Colors.WHITE
-            btn_semana.bgcolor = ft.Colors.GREY_200
-            btn_semana.content.color = ft.Colors.GREY_600
+        label_btn_periodo.value = opciones_labels[nuevo_modo]
         construir_vista()
 
     construir_vista()
 
-    vista_stats = ft.Column([
-        ft.Container(height=10),
-        ft.Text("Estadísticas", size=24, weight="bold", color=color_azul),
-        ft.Row([btn_semana, btn_mes], spacing=10),
-        ft.Container(height=5),
-        contenedor_stats,
-    ], expand=True, spacing=10)
+    vista_stats = ft.Stack([
+        ft.Column([
+            ft.Container(height=10),
+            ft.Text("Estadísticas", size=24, weight="bold", color=color_azul),
+            ft.Row([btn_periodo], spacing=10),
+            ft.Container(height=5),
+            contenedor_stats,
+        ], expand=True, spacing=10),
+        ft.Column([
+            ft.Container(height=65),
+            panel_dropdown,
+        ], spacing=0)
+    ], expand=True)
 
     contenedor_principal.content = vista_stats
-
     return contenedor_principal
 
 
