@@ -1,6 +1,8 @@
 import sqlite3
 import re
 import os
+import bcrypt
+
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "..", "procrastination.db")
@@ -81,9 +83,10 @@ def registrar_usuario_db(nombre, correo, password):
     db = conectar_db()
     try:
         cursor = db.cursor()
+        hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
         cursor.execute(
             "INSERT INTO usuarios (nombre, correo, password) VALUES (?, ?, ?)",
-            (nombre.strip(), correo.strip(), password)
+            (nombre.strip(), correo.strip(), hashed)
         )
         db.commit()
         return True, "Registro exitoso."
@@ -100,11 +103,11 @@ def validar_usuario_db(correo, password):
     db = conectar_db()
     try:
         cursor = db.cursor()
-        cursor.execute(
-            "SELECT nombre, correo FROM usuarios WHERE correo=? AND password=?",
-            (correo, password)
-        )
-        return cursor.fetchone()
+        cursor.execute("SELECT nombre, correo, password FROM usuarios WHERE correo=?", (correo,))
+        usuario = cursor.fetchone()
+        if usuario and bcrypt.checkpw(password.encode(), usuario[2].encode()):
+            return (usuario[0], usuario[1])
+        return None
     finally:
         db.close()
 
@@ -136,9 +139,10 @@ def actualizar_usuario_db(correo_actual, nuevo_nombre=None, nuevo_correo=None, n
             )
             correo_actual = nuevo_correo
         if nueva_pass:
+            hashed = bcrypt.hashpw(nueva_pass.encode(), bcrypt.gensalt()).decode()
             cursor.execute(
                 "UPDATE usuarios SET password = ? WHERE correo = ?",
-                (nueva_pass, correo_actual)
+                (hashed, correo_actual)
             )
         db.commit()
         return True, "Actualización exitosa."

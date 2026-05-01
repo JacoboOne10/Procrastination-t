@@ -6,6 +6,7 @@ from vistas.inicio import obtener_vista_inicio
 from vistas.perfil import obtener_vista_perfil
 from vistas.modificar_datos import obtener_vista_modificar
 from vistas.estadisticas import obtener_vista_estadisticas
+from vistas.cambiar_contraseña  import obtener_vista_recuperar
 
 
 def main(page: ft.Page):
@@ -38,12 +39,17 @@ def main(page: ft.Page):
         ir_a_login()
 
     def ir_a_login(e=None):
-        contenido_celular.content = obtener_vista_login(page, entrar_a_app, ir_a_registro)
+        contenido_celular.content = obtener_vista_login(page, entrar_a_app, ir_a_registro, ir_a_recuperar)
         capa_dock.visible = False
         page.update()
 
     def ir_a_registro(e=None):
         contenido_celular.content = obtener_vista_registro(page, ir_a_login)
+        capa_dock.visible = False
+        page.update()
+
+    def ir_a_recuperar(e=None):
+        contenido_celular.content = obtener_vista_recuperar(page, ir_a_login)
         capa_dock.visible = False
         page.update()
 

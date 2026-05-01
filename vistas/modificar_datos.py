@@ -30,26 +30,26 @@ def obtener_vista_modificar(page, nombre_actual, correo_actual, al_finalizar):
         )
 
     campo_nombre = crear_campo("Nombre", nombre_actual)
-    campo_correo = crear_campo("Correo", correo_actual)
     campo_pass = crear_campo("Nueva contraseña (opcional)", "", es_password=True)
 
     def guardar_cambios(e):
         nuevo_nombre = campo_nombre.content.value.strip()
-        nuevo_correo = campo_correo.content.value.strip()
         nueva_pass = campo_pass.content.value.strip()
 
         nombre_cambio = nuevo_nombre if nuevo_nombre != nombre_actual else None
-        correo_cambio = nuevo_correo if nuevo_correo != correo_actual else None
         pass_cambio = nueva_pass if nueva_pass else None
 
-        if not nombre_cambio and not correo_cambio and not pass_cambio:
+        if nueva_pass and len(nueva_pass) < 8:
+            mostrar_snackbar(page, "⚠️ La contraseña debe tener al menos 8 caracteres", ft.Colors.ORANGE_700)
+            return
+
+        if not nombre_cambio and not pass_cambio:
             mostrar_snackbar(page, "⚠️ No hay cambios que guardar", ft.Colors.ORANGE_700)
             return
 
         exito, mensaje = actualizar_usuario_db(
             correo_actual,
             nuevo_nombre=nombre_cambio,
-            nuevo_correo=correo_cambio,
             nueva_pass=pass_cambio
         )
 
@@ -57,7 +57,7 @@ def obtener_vista_modificar(page, nombre_actual, correo_actual, al_finalizar):
             mostrar_snackbar(page, "✅ Datos actualizados correctamente", ft.Colors.GREEN_700)
             al_finalizar(
                 nuevo_nombre if nombre_cambio else nombre_actual,
-                nuevo_correo if correo_cambio else correo_actual
+                correo_actual
             )
         else:
             mostrar_snackbar(page, f"❌ {mensaje}", ft.Colors.RED_700)
@@ -96,7 +96,6 @@ def obtener_vista_modificar(page, nombre_actual, correo_actual, al_finalizar):
             ft.Container(height=20),
 
             campo_nombre,
-            campo_correo,
             campo_pass,
 
             ft.Container(expand=True),

@@ -3,7 +3,7 @@ from vistas.db_manager import validar_usuario_db
 from vistas.notis import mostrar_snackbar
 
 
-def obtener_vista_login(page, on_login, ir_a_registro):
+def obtener_vista_login(page, on_login, ir_a_registro, ir_a_recuperar):
     color_primario = ft.Colors.BLUE_800
     color_texto_oscuro = ft.Colors.BLACK
     color_boton_texto = ft.Colors.WHITE
@@ -86,6 +86,13 @@ def obtener_vista_login(page, on_login, ir_a_registro):
                     )
                 ], alignment="center"),
 
+                ft.TextButton(
+                    "¿Olvidaste tu contraseña?",
+                    icon=ft.Icons.LOCK_RESET_ROUNDED,
+                    on_click=ir_a_recuperar,
+                    style=ft.ButtonStyle(color=color_primario)
+                ),
+
                 ft.Container(expand=True),
             ],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
@@ -107,11 +114,12 @@ if __name__ == "__main__":
 
         def mock_login(datos): print(f"Login exitoso: {datos}")
         def mock_registro(e): print("Navegando a Registro...")
+        def mock_recuperar(e): print("Navegando a Recuperar...")
 
         celular_test = ft.Container(
             expand=True,
             image=ft.DecorationImage(src="/5.jpg", fit="cover"),
-            content=obtener_vista_login(page, mock_login, mock_registro)
+            content=obtener_vista_login(page, mock_login, mock_registro, mock_recuperar)
         )
 
         page.add(celular_test)
