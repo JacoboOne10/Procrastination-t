@@ -65,7 +65,7 @@ def obtener_vista_login(page, on_login, ir_a_registro, ir_a_recuperar):
                 ft.Container(expand=True),
 
                 ft.Image(
-                    src="/logo.png", width=120, height=120, fit="contain"
+                    src="logo.png", width=120, height=120, fit="contain"
                 ),
 
                 ft.Text("Procrastination't", size=26, weight="bold", color=color_primario),

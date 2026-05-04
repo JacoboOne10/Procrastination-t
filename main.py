@@ -160,7 +160,7 @@ def main(page: ft.Page):
 
     celular = ft.Container(
         expand=True,
-        image=ft.DecorationImage(src="/5.jpg", fit="cover"),
+        image=ft.DecorationImage(src="bg.jpg", fit="cover"),
         content=ft.Column([
             ft.Container(
                 content=contenido_celular,
