@@ -1,6 +1,6 @@
 import flet as ft
 from datetime import datetime, timedelta, date
-from vistas.db_manager import (
+from db_manager import (
     obtener_actividades_por_rango_db,
     obtener_actividades_db,
     actualizar_actividad_db,
@@ -603,7 +603,7 @@ if __name__ == "__main__":
 
         celular_test = ft.Container(
             expand=True,
-            image=ft.DecorationImage(src="/5.jpg", fit="cover"),
+            image=ft.DecorationImage(src="/bg.jpg", fit="cover"),
             content=ft.Container(
                 content=obtener_vista_estadisticas(page, "correo@test.com"),
                 expand=True,

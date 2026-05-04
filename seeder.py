@@ -1,6 +1,6 @@
-from vistas.db_manager import conectar_db, crear_tablas, registrar_usuario_db
+from db_manager import conectar_db, crear_tablas, registrar_usuario_db
 from datetime import date, timedelta
-import random
+
 
 def correr_seeder():
     crear_tablas()

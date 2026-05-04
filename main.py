@@ -1,5 +1,5 @@
 import flet as ft
-from vistas.db_manager import crear_tablas, conectar_db
+from db_manager import crear_tablas, conectar_db
 from vistas.login import obtener_vista_login
 from vistas.registro import obtener_vista_registro
 from vistas.inicio import obtener_vista_inicio
@@ -176,4 +176,4 @@ def main(page: ft.Page):
 
 
 if __name__ == "__main__":
-    ft.run(main, assets_dir="images")
+    ft.run(main, assets_dir="assets")

@@ -1,7 +1,7 @@
 import flet as ft
-from vistas.db_manager import registrar_usuario_db
+from db_manager import registrar_usuario_db
 from vistas.notis import mostrar_snackbar
-from vistas.enviar_email import generar_codigo, enviar_codigo_verificacion
+from enviar_email import generar_codigo, enviar_codigo_verificacion
 
 
 def obtener_vista_registro(page, volver_a_login):
@@ -193,7 +193,7 @@ def obtener_vista_registro(page, volver_a_login):
             return
 
         # Validaciones previas antes de enviar el correo
-        from vistas.db_manager import validar_nombre, validar_correo
+        from db_manager import validar_nombre, validar_correo
         valido, mensaje = validar_nombre(nombre)
         if not valido:
             mostrar_snackbar(page, f"❌ {mensaje}", ft.Colors.RED_700)
@@ -282,7 +282,7 @@ if __name__ == "__main__":
 
         celular_test = ft.Container(
             expand=True,
-            image=ft.DecorationImage(src="/5.jpg", fit="cover"),
+            image=ft.DecorationImage(src="/bg.jpg", fit="cover"),
             content=obtener_vista_registro(page, mock_volver)
         )
         page.add(celular_test)

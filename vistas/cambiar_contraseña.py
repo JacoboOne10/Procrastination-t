@@ -1,7 +1,7 @@
 import flet as ft
-from vistas.db_manager import validar_usuario_db, actualizar_usuario_db
+from db_manager import actualizar_usuario_db
 from vistas.notis import mostrar_snackbar
-from vistas.enviar_email import generar_codigo, enviar_codigo_verificacion
+from enviar_email import generar_codigo, enviar_codigo_verificacion
 
 
 def obtener_vista_recuperar(page, volver_a_login):
@@ -202,7 +202,7 @@ def obtener_vista_recuperar(page, volver_a_login):
             return
 
         # Verificar que el correo existe en la DB
-        from vistas.db_manager import conectar_db
+        from db_manager import conectar_db
         db = conectar_db()
         try:
             cursor = db.cursor()
@@ -303,7 +303,7 @@ if __name__ == "__main__":
 
         celular_test = ft.Container(
             expand=True,
-            image=ft.DecorationImage(src="/5.jpg", fit="cover"),
+            image=ft.DecorationImage(src="/bg.jpg", fit="cover"),
             content=obtener_vista_recuperar(page, mock_volver)
         )
         page.add(celular_test)

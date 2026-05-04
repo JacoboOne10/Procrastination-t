@@ -97,7 +97,7 @@ if __name__ == "__main__":
 
         celular_test = ft.Container(
             expand=True,
-            image=ft.DecorationImage(src="/5.jpg", fit="cover"),
+            image=ft.DecorationImage(src="/bg.jpg", fit="cover"),
             padding=ft.Padding(top=40, left=20, right=20, bottom=20),
             # Pasamos datos de prueba para ver cómo se ve
             content=obtener_vista_perfil(mock_logout, lambda e: None, lambda e: None, "Prueba","prueba@prueba.com")        )

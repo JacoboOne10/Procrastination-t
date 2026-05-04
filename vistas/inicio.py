@@ -1,6 +1,6 @@
 import flet as ft
 import random
-from vistas.db_manager import agregar_actividad_db
+from db_manager import agregar_actividad_db
 from vistas.notis import mostrar_snackbar
 
 
@@ -309,7 +309,7 @@ if __name__ == "__main__":
 
         celular_test = ft.Container(
             expand=True,
-            image=ft.DecorationImage(src="/5.jpg", fit="cover"),
+            image=ft.DecorationImage(src="/bg.jpg", fit="cover"),
             content=ft.Container(
                 content=obtener_vista_inicio(page, "correo@test.com"),
                 expand=True,

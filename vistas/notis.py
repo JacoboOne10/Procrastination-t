@@ -5,7 +5,7 @@ def mostrar_snackbar(page, mensaje, color):
         content=ft.Text(mensaje),
         bgcolor=color,
         behavior=ft.SnackBarBehavior.FLOATING,
-        margin=ft.Padding.only(left=10, right=10, bottom=400)
+        margin=ft.Padding.only(left=10, right=10, bottom=600)
     ))
     page.overlay[-1].open = True
     page.update()
