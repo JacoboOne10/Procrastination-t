@@ -118,7 +118,7 @@ if __name__ == "__main__":
 
         celular_test = ft.Container(
             expand=True,
-            image=ft.DecorationImage(src="/bg.jpg", fit="cover"),
+            image=ft.DecorationImage(src="bg.jpg", fit="cover"),
             content=obtener_vista_login(page, mock_login, mock_registro, mock_recuperar)
         )
 

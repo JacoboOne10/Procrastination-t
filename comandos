@@ -1,0 +1,5 @@
+#borrar datos
+.venv\Scripts\python.exe -c "from db_manager import limpiar_datos; limpiar_datos()"
+
+#correr seeder
+.venv\Scripts\python.exe seeder.py
